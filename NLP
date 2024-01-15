@@ -1,0 +1,60 @@
+import numpy as np
+import pandas as pd
+import re
+import preprocess_kgptalkie as ps
+import pickle
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.svm import LinearSVC
+from sklearn.metrics import classification_report
+
+!git clone https://github.com/laxmimerit/IMDB-Movie-Reviews-Large-Dataset-50k.git
+
+df = pd.read_excel('/content/IMDB-Movie-Reviews-Large-Dataset-50k/train.xlsx')
+
+df.head()
+
+! pip install git+https://github.com/laxmimerit/preprocess_kgptalkie.git --upgrade --force-reinstall
+
+def get_clean(x):
+    x = str(x).lower().replace('\\', '').replace('_', ' ')
+    x = ps.cont_exp(x)
+    x = ps.remove_emails(x)
+    x = ps.remove_urls(x)
+    x = ps.remove_html_tags(x)
+    x = ps.remove_accented_chars(x)
+    x = ps.remove_special_chars(x)
+    x = re.sub("(.)\\1{2,}", "\\1", x)
+    return x
+
+df['Reviews'] = df['Reviews'].apply(lambda x: get_clean(x))
+
+df.head()
+
+tfidf = TfidfVectorizer(max_features=5000)
+X = df['Reviews']
+Y = df['Sentiment']
+
+X = tfidf.fit_transform(X)
+
+X
+
+X_train, X_test, Y_train, Y_test =  train_test_split(X,Y, test_size = 0.2, random_state = 0)
+
+clf = LinearSVC()
+clf.fit(X_train, Y_train)
+
+Y_pred = clf.predict(X_test)
+
+print(classification_report(Y_test, Y_pred))
+
+X = 'thankyou'
+
+X = get_clean(X)
+vec = tfidf.transform([X])
+
+vec.shape
+
+clf.predict(vec)
+
+pickle.dump(clf, open('model','wb'))
