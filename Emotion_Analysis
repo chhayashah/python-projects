@@ -1,0 +1,19 @@
+!pip install NRCLex
+
+import nltk
+from nrclex import NRCLex
+
+text="I Like to visit historical places"
+
+!python -m textblob.download_corpora
+
+emotion=NRCLex(text)
+
+print(emotion.top_emotions)
+
+text1=['hate','love','worst','best']
+
+for i in range(len(text)):
+  emotion = NRCLex(text[i])
+  print(emotion.top_emotions)
+
